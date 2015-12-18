@@ -10,6 +10,8 @@ from djangotoolbox.db.creation import NonrelDatabaseCreation
 
 from .utils import make_index_list
 
+import hashlib
+
 
 class DatabaseCreation(NonrelDatabaseCreation):
 
@@ -139,7 +141,17 @@ class DatabaseCreation(NonrelDatabaseCreation):
         # Django unique_together indexes.
         for indexes in getattr(meta, 'unique_together', []):
             assert isinstance(indexes, (list, tuple))
-            create_compound_indexes(indexes, unique=True)
+            """
+            create_compound_indexes by default generates the index name as a list of all the fields in 'indexes',
+            this can cause the index creation to fail when the list of fields in unique indexes is large because
+            there is a 128 character limit on index names. So, here we create a custom index name which is the md5
+            of the index name decided by create_compound_indexes.
+            """
+            unique_field_names = ''.join(map(lambda (name, direction): str(name) + str(direction), make_index_list(indexes)))
+            md5 = hashlib.md5()
+            md5.update(unique_field_names)
+            index_name = md5.hexdigest()
+            create_compound_indexes(indexes, unique=True, name=index_name)
 
         # MongoDB compound indexes.
         index_together = getattr(meta, 'mongo_index_together', [])
