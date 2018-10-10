@@ -70,7 +70,8 @@ class DatabaseCreation(NonrelDatabaseCreation):
                 # field doesn't need an index.
                 continue
             column = '_id' if field.primary_key else field.column
-            ensure_index(column, unique=field.unique)
+            if not column == '_id':
+                ensure_index(column, unique=field.unique)
 
         # Django unique_together indexes.
         indexes = list(indexes)
@@ -122,9 +123,10 @@ class DatabaseCreation(NonrelDatabaseCreation):
                 # field doesn't need an index.
                 continue
             column = '_id' if field.primary_key else field.column
-            if field.name in descending_indexes:
-                column = [(column, DESCENDING)]
-            ensure_index(column, unique=field.unique,
+            if not column == '_id':
+                if field.name in descending_indexes:
+                    column = [(column, DESCENDING)]
+                    ensure_index(column, unique=field.unique,
                          sparse=field.name in sparse_indexes)
 
         def create_compound_indexes(indexes, **kwargs):
