@@ -126,8 +126,7 @@ class DatabaseCreation(NonrelDatabaseCreation):
             if not column == '_id':
                 if field.name in descending_indexes:
                     column = [(column, DESCENDING)]
-                    ensure_index(column, unique=field.unique,
-                         sparse=field.name in sparse_indexes)
+                ensure_index(column, unique=field.unique, sparse=field.name in sparse_indexes)
 
         def create_compound_indexes(indexes, **kwargs):
             # indexes: (field1, field2, ...).
